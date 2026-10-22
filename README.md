@@ -64,6 +64,47 @@ All behaviour is set through environment variables (`-e NAME=value`):
   is treated as a **candidate**, then the same PIN is entered a second time to
   confirm before the run stops. This avoids stopping on a one-off length jitter.
 
+## Example meters and how optical PIN entry works
+
+Most German meters (moderne Messeinrichtung) expose a single optical button —
+the IR diode on the front. A flashlight toggled against it acts as that button;
+this tool drives the same button electronically from the read/write head, which
+is why the blink grammar below mirrors how a human would flash a torch.
+
+**EMH mMe4.0** (and similar EMH eHZ), per the manufacturer manual:
+- A short flash (< 4.5 s) on the optical button wakes it; after the display test
+  the PIN prompt appears.
+- Each digit starts at `0`; flashing the button counts the digit up, and after a
+  short pause the meter auto-advances to the next digit (there is no explicit
+  confirm button). A long flash (> 4.5 s) selects a register / ends a list.
+- After the PIN, the second display line scrolls through `P` (momentary power),
+  `E` (consumption, import/export separated), `1d/7d/30d/365d` history, and the
+  `InF on/off` + `PIN on/off` settings.
+
+This "N flashes per digit, pause to advance" scheme is exactly what the script
+emulates (N blinks per digit, `DIGIT_GAP_S` between digits).
+
+**Default PIN:** unconfigured meters commonly ship with `0000` — which is why
+this tool now tries `0000` (the original range skipped it).
+
+**What unlocking gives you:** the extended data set — momentary power
+(import/export) and per-phase voltage L1/L2/L3 — on top of the basic total-energy
+reading that the optical D0 interface serves without a PIN.
+
+**Lockout / attempts — varies by operator and model, confirm for yours:**
+- Stromnetz Berlin states their meters do not block: a wrong PIN can be
+  re-entered as often as needed.
+- The EMH mMe4.0 manual documents no lockout after failed attempts (it only
+  requires cycling through the remaining digits before re-entering).
+- This is not guaranteed for every meter — check your manufacturer's manual or
+  ask your metering point operator before a full sweep.
+
+**Getting the PIN the official way:** your metering point operator
+(Messstellenbetreiber) issues it and sends it by post, usually free of charge;
+on some meters it is issued once and cannot be changed.
+
+Sources: [EMH mMe4.0 Kundenbedienungsanleitung (Stadtwerke Pforzheim)](https://www.stadtwerke-pforzheim.de/fileadmin/user_upload/Downloads/Strom/Smart_Meter/bedienungsanleitungen/Kundenbedienungsanleitung_EMH_mMe4.0.pdf) · [Stromnetz Berlin meter instructions](https://www.stromnetz.berlin/en/meters/meter-instructions/) · [stromleser.de – PIN entry on digital meters](https://stromleser.de/en/blogs/news/pin-eingabe-digitale-stromzaehler) · [recessim wiki](https://wiki.recessim.com/)
+
 ## Caution
 
 * Entering the PIN unlocks **your own** data on **your own** meter.
