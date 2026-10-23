@@ -16,7 +16,8 @@ Uart must be enabled in config.txt:
 and a Smart Meter IR Read Write Dongle (Schreib Lese Kopf) has to be attached - I use this one:
 https://www.ebay.de/itm/296425429208?itmmeta=01KRE6PEXYJYT9Z03Q1V2C5TQ7&hash=item45045518d8:g:0yUAAOSwpDJl9wjE
 
-Written in Rust (`serial2`, no libudev dependency). Build the image on the
+Written in Rust (`serial2`, no libudev dependency). The image builds against
+musl and runs on Alpine (a small, effectively static binary). Build it on the
 target (e.g. the Raspberry Pi) so the binary matches its architecture:
 
 	docker build -t isarrider/smart-meter-brute-force-pin:latest .
