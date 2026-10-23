@@ -1,0 +1,18 @@
+[package]
+name = "smart-meter-brute-force-pin"
+version = "0.1.0"
+edition = "2021"
+description = "Brute-forces a smart meter's optical PIN to unlock its extended SML data set"
+license = "MIT"
+
+[[bin]]
+name = "smart-meter-brute-force-pin"
+path = "src/main.rs"
+
+[dependencies]
+serial2 = "0.2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true

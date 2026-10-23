@@ -16,13 +16,17 @@ Uart must be enabled in config.txt:
 and a Smart Meter IR Read Write Dongle (Schreib Lese Kopf) has to be attached - I use this one:
 https://www.ebay.de/itm/296425429208?itmmeta=01KRE6PEXYJYT9Z03Q1V2C5TQ7&hash=item45045518d8:g:0yUAAOSwpDJl9wjE
 
+Written in Rust (`serial2`, no libudev dependency). Build the image on the
+target (e.g. the Raspberry Pi) so the binary matches its architecture:
+
+	docker build -t isarrider/smart-meter-brute-force-pin:latest .
+
 ## Run
 
 	docker run -d --restart unless-stopped \
 	 --device /dev/ttyAMA0:/dev/ttyAMA0 \
 	 -v smbf_data:/data \
 	 --name smart-meter-brute-force-pin \
-	 -e PYTHONUNBUFFERED=1 \
 	 isarrider/smart-meter-brute-force-pin:latest
 
 and follow the logs with:
@@ -32,7 +36,17 @@ and follow the logs with:
 or in Portainer.
 
 The `-v smbf_data:/data` volume holds the progress checkpoint, so a restart
-resumes where it left off instead of starting over from the first PIN.
+resumes where it left off instead of starting over from the first PIN. Output is
+line-buffered, so logs stream live without any extra flags.
+
+### Without Docker
+
+	cargo build --release
+	COM_PORT=/dev/ttyAMA0 ./target/release/smart-meter-brute-force-pin
+
+The user running it needs access to the serial device (typically the `dialout`
+group). With no `/data` volume, point the checkpoint somewhere writable, e.g.
+`CHECKPOINT=./last_pin.txt`.
 
 ## Configuration
 
