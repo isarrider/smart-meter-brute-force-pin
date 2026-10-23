@@ -17,10 +17,13 @@ and a Smart Meter IR Read Write Dongle (Schreib Lese Kopf) has to be attached - 
 https://www.ebay.de/itm/296425429208?itmmeta=01KRE6PEXYJYT9Z03Q1V2C5TQ7&hash=item45045518d8:g:0yUAAOSwpDJl9wjE
 
 Written in Rust (`serial2`, no libudev dependency). The image builds against
-musl and runs on Alpine (a small, effectively static binary). Build it on the
-target (e.g. the Raspberry Pi) so the binary matches its architecture:
+musl and runs on Alpine (a small, effectively static binary).
 
-	docker build -t isarrider/smart-meter-brute-force-pin:latest .
+A multiarch image (`linux/amd64`, `linux/arm64`) is built and pushed to GHCR by
+CI on every push to `main` and on version tags, so on a 64-bit Raspberry Pi you
+can just pull it — no local build needed:
+
+	ghcr.io/isarrider/smart-meter-brute-force-pin:latest
 
 ## Run
 
@@ -28,7 +31,7 @@ target (e.g. the Raspberry Pi) so the binary matches its architecture:
 	 --device /dev/ttyAMA0:/dev/ttyAMA0 \
 	 -v smbf_data:/data \
 	 --name smart-meter-brute-force-pin \
-	 isarrider/smart-meter-brute-force-pin:latest
+	 ghcr.io/isarrider/smart-meter-brute-force-pin:latest
 
 and follow the logs with:
 
@@ -48,6 +51,18 @@ line-buffered, so logs stream live without any extra flags.
 The user running it needs access to the serial device (typically the `dialout`
 group). With no `/data` volume, point the checkpoint somewhere writable, e.g.
 `CHECKPOINT=./last_pin.txt`.
+
+### Building the image yourself
+
+Single architecture (host), e.g. straight on the Pi:
+
+	docker build -t smart-meter-brute-force-pin:latest .
+
+Multiarch with buildx (needs QEMU set up for cross-arch emulation). Add
+`linux/arm/v7` if you run a 32-bit Pi OS:
+
+	docker buildx build --platform linux/amd64,linux/arm64 \
+	 -t ghcr.io/isarrider/smart-meter-brute-force-pin:latest --push .
 
 ## Configuration
 
