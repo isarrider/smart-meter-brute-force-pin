@@ -1,6 +1,10 @@
 # ---- build ----
-FROM rust:1-slim AS build
+# rust:*-alpine builds against musl, so the binary runs on an Alpine runtime
+# (and is effectively static). musl-dev provides the C runtime objects the
+# linker needs.
+FROM rust:1-alpine AS build
 WORKDIR /src
+RUN apk add --no-cache musl-dev
 
 # Cache dependency compilation separately from the source.
 COPY Cargo.toml Cargo.lock ./
@@ -10,7 +14,7 @@ COPY src ./src
 RUN touch src/main.rs && cargo build --release
 
 # ---- runtime ----
-FROM debian:bookworm-slim
+FROM alpine:3.20
 COPY --from=build /src/target/release/smart-meter-brute-force-pin /usr/local/bin/smart-meter-brute-force-pin
 
 # Checkpoint lives here so progress survives a container restart.
