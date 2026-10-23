@@ -19,9 +19,10 @@ https://www.ebay.de/itm/296425429208?itmmeta=01KRE6PEXYJYT9Z03Q1V2C5TQ7&hash=ite
 Written in Rust (`serial2`, no libudev dependency). The image builds against
 musl and runs on Alpine (a small, effectively static binary).
 
-A multiarch image (`linux/amd64`, `linux/arm64`) is built and pushed to GHCR by
-CI on every push to `main` and on version tags, so on a 64-bit Raspberry Pi you
-can just pull it — no local build needed:
+A multiarch image (`linux/amd64`, `linux/arm64`, `linux/arm/v7`,
+`linux/riscv64`) is built and pushed to GHCR by CI on every push to `main` and
+on version tags, so on a Raspberry Pi (32- or 64-bit) or a RISC-V board you can
+just pull it — no local build needed:
 
 	ghcr.io/isarrider/smart-meter-brute-force-pin:latest
 
@@ -58,10 +59,11 @@ Single architecture (host), e.g. straight on the Pi:
 
 	docker build -t smart-meter-brute-force-pin:latest .
 
-Multiarch with buildx (needs QEMU set up for cross-arch emulation). Add
-`linux/arm/v7` if you run a 32-bit Pi OS:
+Multiarch with buildx. The binary is cross-compiled to a static musl target
+(via `cargo-zigbuild`) on the native build host, so no QEMU emulation is needed:
 
-	docker buildx build --platform linux/amd64,linux/arm64 \
+	docker buildx build \
+	 --platform linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64 \
 	 -t ghcr.io/isarrider/smart-meter-brute-force-pin:latest --push .
 
 ## Configuration
